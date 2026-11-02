@@ -1,0 +1,41 @@
+# R and RStudio
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# Analysis folders
+# These fill up with reads, assemblies, bins and other tool output, which are
+# far too big for git. Git ignores everything in them except shell scripts and
+# small summary tables (.txt or .tsv files) saved directly in the folder.
+/flye/*
+/metabat/*
+/checkm/*
+/gtdbtk/*
+/prokka/*
+/minpath/*
+!/*/*.sh
+!/*/*.txt
+!/*/*.tsv
+!/*/.gitkeep
+
+# Keep the empty folders that bins are copied into, but not the bins
+!/checkm/bins_bbd/
+/checkm/bins_bbd/*
+!/checkm/bins_bbd/.gitkeep
+!/gtdbtk/genomes/
+/gtdbtk/genomes/*
+!/gtdbtk/genomes/.gitkeep
+
+# Job logs and sequence files anywhere else in the repository
+slurm-*.out
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.fasta
+*.fa
+*.fna
+*.gfa
+*.bam
+*.sam

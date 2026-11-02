@@ -1,0 +1,25 @@
+---
+title: "BBD Metagenome: Bin Quality"
+author: "Your Name"
+date: "`r Sys.Date()`"
+output:
+  github_document:
+    html_preview: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# Bash chunks are a record of commands you ran in the Terminal. Knitting shows
+# them but doesn't run them again.
+knitr::opts_hooks$set(engine = function(options) {
+  if (options$engine == "bash") options$eval <- FALSE
+  options
+})
+```
+
+<!--
+Explain what this step does and why, and copy each command you ran into a
+bash chunk. R chunks run from the top of the repository.
+-->
+
+Completeness and contamination of each bin, estimated with CheckM, and selection of the most complete bins for further analysis. Commands for this step were run in `checkm/`.

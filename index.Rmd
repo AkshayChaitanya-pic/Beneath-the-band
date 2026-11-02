@@ -1,0 +1,60 @@
+---
+title: "The Metagenome of Black Band Disease"
+author: "Your Name"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# Bash chunks are a record of commands you ran in the Terminal. Knitting shows
+# them but doesn't run them again.
+knitr::opts_hooks$set(engine = function(options) {
+  if (options$engine == "bash") options$eval <- FALSE
+  options
+})
+# Every step file has a chunk called setup, so allow the same label more than once
+options(knitr.duplicate.label = "allow")
+```
+
+<!--
+This file joins all of the step files into one web page. Knit it to make
+index.html, a single file you can open in a browser or upload. Each step file
+is knitted again as part of this page, so knit each one on its own first and
+fix any errors there.
+
+If you add a step file, add a heading and a child chunk for it below.
+-->
+
+# Assembly
+
+```{r, child = "01_assembly.Rmd"}
+```
+
+# Binning
+
+```{r, child = "02_binning.Rmd"}
+```
+
+# Bin quality
+
+```{r, child = "03_bin_quality.Rmd"}
+```
+
+# Taxonomy
+
+```{r, child = "04_taxonomy.Rmd"}
+```
+
+# Gene annotation
+
+```{r, child = "05_gene_annotation.Rmd"}
+```
+
+# Metabolic pathways
+
+```{r, child = "06_metabolic_pathways.Rmd"}
+```
