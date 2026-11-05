@@ -69,8 +69,6 @@ submitted to the JCU computing cluster as SLURM job **432**.
 
 Parameter \| Result \|
 
-\|—\|—\|
-
 Assembler \| Flye v2.9.6 \|
 
 Input \| `bbd_0.1.fastq.gz` \|
@@ -88,8 +86,6 @@ Output file \| `flye/bbd/assembly.fasta` \|
 **Assembly statistics**
 
 Metric \| Result \|
-
-\|—\|—:\|
 
 Number of assembled contigs \| 7,979 \|
 

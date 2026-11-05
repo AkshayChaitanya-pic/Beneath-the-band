@@ -63,8 +63,6 @@ The Flye metagenomic assembly completed successfully using the Oxford Nanopore s
 
 | Parameter | Result |
 
-|---|---|
-
 | Assembler | Flye v2.9.6 |
 
 Input | `bbd_0.1.fastq.gz` |
@@ -82,8 +80,6 @@ Input | `bbd_0.1.fastq.gz` |
 **Assembly statistics**
 
 | Metric | Result |
-
-|---|---:|
 
 | Number of assembled contigs | 7,979 |
 
