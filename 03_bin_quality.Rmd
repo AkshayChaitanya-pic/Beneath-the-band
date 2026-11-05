@@ -163,7 +163,7 @@ Some candidates contained most of their expected conserved marker genes, while o
 Two genome candidates showed particularly high estimated completeness.
 
 | Genome candidate | CheckM marker lineage | Completeness (%) | Contamination (%) |
-|:-----------------|:-----------------|-----------------:|-----------------:|
+|----------------- |-----------------------|------------------|-------------------|
 | `contig_134`     | Cytophagales          |            97.62 |              1.64 |
 | `metabat.45`     | Cyanobacteria         |            97.56 |              0.67 |
 
