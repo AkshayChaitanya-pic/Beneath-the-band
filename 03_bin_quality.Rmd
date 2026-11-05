@@ -163,9 +163,9 @@ Some candidates contained most of their expected conserved marker genes, while o
 Two genome candidates showed particularly high estimated completeness.
 
 | Genome candidate | CheckM marker lineage | Completeness (%) | Contamination (%) |
-|:---|:---|---:|---:|
-| `contig_134` | Cytophagales | 97.62 | 1.64 |
-| `metabat.45` | Cyanobacteria | 97.56 | 0.67 |
+|:-----------------|:-----------------|-----------------:|-----------------:|
+| `contig_134`     | Cytophagales          |            97.62 |              1.64 |
+| `metabat.45`     | Cyanobacteria         |            97.56 |              0.67 |
 
 Both candidates exceeded **97% estimated completeness**, indicating that most of their expected lineage-specific marker genes were recovered.
 
@@ -253,23 +253,23 @@ This represents approximately **20.8%** of the assessed candidates.
 The selected candidates were:
 
 | Candidate | Genome identifier |
-|---:|:---|
-| 1 | `contig_134` |
-| 2 | `metabat.45` |
-| 3 | `metabat.3` |
-| 4 | `metabat.18` |
-| 5 | `metabat.9` |
-| 6 | `metabat.36` |
-| 7 | `metabat.32` |
-| 8 | `metabat.56` |
-| 9 | `metabat.22` |
-| 10 | `metabat.50` |
-| 11 | `metabat.71` |
-| 12 | `metabat.37` |
-| 13 | `metabat.76` |
-| 14 | `metabat.60` |
-| 15 | `metabat.10` |
-| 16 | `metabat.70` |
+|----------:|:------------------|
+|         1 | `contig_134`      |
+|         2 | `metabat.45`      |
+|         3 | `metabat.3`       |
+|         4 | `metabat.18`      |
+|         5 | `metabat.9`       |
+|         6 | `metabat.36`      |
+|         7 | `metabat.32`      |
+|         8 | `metabat.56`      |
+|         9 | `metabat.22`      |
+|        10 | `metabat.50`      |
+|        11 | `metabat.71`      |
+|        12 | `metabat.37`      |
+|        13 | `metabat.76`      |
+|        14 | `metabat.60`      |
+|        15 | `metabat.10`      |
+|        16 | `metabat.70`      |
 
 The identifiers were saved in:
 

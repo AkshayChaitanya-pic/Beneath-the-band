@@ -155,148 +155,94 @@ To keep the results reproducible I read the annotation tables from the Prokka ou
 
 bin_ids <- readLines(
 
-"checkm/bbd_topbins.txt"
-
+"checkm/bbd_topbins.txt",
 warn = FALSE
-
 )
 
 bin_ids <- trimws(bin_ids)
-
 bin_ids <- bin_ids[nzchar(bin_ids)]
-
 stopifnot(
 
 length(bin_ids) == 16,
-
 !anyDuplicated(bin_ids)
-
 )
 
 annotation_files <- file.path(
-
-"prokka"
-
+"prokka",
 bin_ids,
-
-paste0(bin_ids ".tsv")
-
+paste0(bin_ids, ".tsv")
 )
 
 missing_files <- annotation_files[
-
 !file.exists(annotation_files)
-
 ]
 
 if (length(missing_files) > 0) {
-
 stop(
-
-"Missing Prokka annotation files:\n"
-
+"Missing Prokka annotation files:\n",
 paste(missing_files, collapse = "\n")
-
 )
-
 }
 
-read_annotation <- function(file bin) {
-
+read_annotation <- function(file, bin) {
 data <- read.delim(
-
-file
-
-sep = "\t"
-
+file,
+sep = "\t",
 header = TRUE,
-
 stringsAsFactors = FALSE,
-
 check.names = FALSE
-
 )
 
-required <- c("ftype" "product")
+required <- c("ftype" ,"product")
 
-if (!all(required %in% )) {
+if (!all(required %in%(data))) {
 
-stop("Missing required columns in: " file)
+stop("Missing required columns in: ", file)
 
 }
-
 data$Genome <- bin
-
 data
-
 }
-
 annotations <- Map(
-
-read_annotation,
-
-annotation_files,
-
-bin_ids
-
+  read_annotation,
+  annotation_files,
+  bin_ids
 )
 
 names(annotations) <- bin_ids
-
-cds_counts <-
-
+cds_counts <- vapply(
 annotations,
-
-function(data) sum(data$ftype == "CDS" na.rm = TRUE)
-
+function(data) sum(data$ftype == "CDS", na.rm = TRUE),
 integer(1)
-
 )
 
 cds_summary <- data.frame(
-
-Genome = names(cds_counts)
-
-Predicted_CDS = as.integer(cds_counts)
+ Genome = names(cds_counts),
+ Predicted_CDS = as.integer(cds_counts),
 
 row.names = NULL
 
 )
 
 cds_summary <- cds_summary[
-
-order(cds_summary$Predicted_CDS decreasing = TRUE)
-
+order(cds_summary$Predicted_CDS, decreasing = TRUE),
 ]
-
 rownames(cds_summary) <- NULL
-
 stopifnot(
-
 sum(cds_summary$Predicted_CDS) == 19451,
-
 cds_counts["metabat.45"] == 5496,
-
 cds_counts["contig_134"] == 3913,
-
 cds_counts["metabat.60"] == 2178,
-
 cds_counts["metabat.36"] == 223
-
 )
 
+knit::kable(
 cds_summary,
-
-col.names = c("Genome bin" "Predicted CDS")
-
-caption = paste(
-
-"Predicted protein-coding sequences"
-
-"identified by Prokka in the 16 selected genome bins."
-
-)
-
+col.names = c("Genome bin", "Predicted CDS"),
+ caption = paste(
+  "Predicted protein-coding sequences",
+  "identified by Prokka in the 16 selected genome bins."
+ )
 )
 
 ```
@@ -307,50 +253,32 @@ The table shows how many CDS features were found in each Prokka annotation file.
 
 ```{r prokka-cds-figure, fig.cap="Figure 1. Number of predicted protein-coding sequences in each of the 16 selected BBD genome bins. Counts were obtained directly from Prokka annotation tables."}
 
-par(mar = c(5, 10 4 2))
+par(mar = c(5, 10, 4, 2))
 
 bar_positions <- barplot(
-
-rev(cds_summary$Predicted_CDS)
-
-names.arg = rev(cds_summary$Genome)
-
+  rev(cds_summary$Predicted_CDS),
+  names.arg = rev(cds_summary$Genome),
 horiz =
+las = 1,
+  col = "steelblue",
+  border = NA,
+  xlim = c(0, max(cds_summary$Predicted_CDS) *1.18),
 
-las = 1
-
-col = "steelblue"
-
-border = NA,
-
-xlim = c(0 max(cds_summary$Predicted_CDS) * 1.18)
-
-xlab = "Predicted protein-coding sequences (CDS)"
-
-main = "Predicted coding sequences across genome bins"
-
-cex.names = 0.85
-
+xlab = "Predicted protein-coding sequences (CDS)",
+  main = "Predicted coding sequences across genome bins",
+  cex.names = 0.85
 )
 
 text(
-
-x = rev(cds_summary$Predicted_CDS) + 90
-
-y = bar_positions,
-
-labels = format(
-
-rev(cds_summary$Predicted_CDS)
-
-big.mark = " "
-
-)
+  x = rev(cds_summary$Predicted_CDS) + 90,
+  y = bar_positions,
+  labels = format(
+    rev(cds_summary$Predicted_CDS),
+    big.mark = ","
+),
 
 cex = 0.75,
-
 pos = 4
-
 )
 
 ```
@@ -384,83 +312,54 @@ roseofilum$ftype == "CDS"
 ]
 
 products <- trimws(roseofilum_cds$product)
-
 products[is.na(products)] <- ""
 
-<- sum(
+hypothetical<- sum(
 
 products == "hypothetical protein"
-
 )
 
 other_products <- sum(
-
-products != "" &
-
-products != "hypothetical protein"
-
+  products != "" &
+  products != "hypothetical protein"
 )
 
 unlabelled <- sum(products == "")
-
-annotation_summary <- data.frame(
-
-Category = c(
-
-" proteins"
-
-"Other predicted products"
-
-"No product description"
-
-)
+  annotation_summary <- data.frame(
+  Category = c(
+  " proteins",
+  "Other predicted products",
+  "No product description"
+),
 
 CDS = c(
-
-hypothetical
-
+  hypothetical,
 other_products,
-
-unlabelled
-
-)
-
+  unlabelled
+  )
 )
 
 annotation_summary$Percentage <- round(
-
-100 * annotation_summary$CDS /
-
-sum(annotation_summary$CDS)
-
+  100 * annotation_summary$CDS /
+  sum(annotation_summary$CDS),
 1
-
 )
 
 stopifnot(
-
 nrow(roseofilum_cds) == 5496
-
-== 3329
-
-other_products == 2167
+== 3329,
+other_products == 2167,
 
 unlabelled == 0
 
 )
 
 knitr::kable(
-
-annotation_summary
-
-caption = paste(
-
-"Annotation composition of the"
-
-"Roseofilum-classified genome bin metabat.45."
-
-)
-
+annotation_summary,
+  caption = paste(
+    "Annotation composition of the",
+    "Roseofilum-classified genome bin metabat.45."
+  )
 )
 
 ```
@@ -478,59 +377,38 @@ The high proportion of proteins shows that many predicted coding sequences could
 ```{r roseofilum-composition-figure fig.cap="Figure 2. Proportion of predicted CDS annotated as proteins or assigned other product descriptions in metabat.45."}
 
 plot_categories <- annotation_summary[
-
-annotation_summary$CDS > 0
-
+  annotation_summary$CDS > 0,
 ]
 
 bar_values <- plot_categories$CDS
-
-names(bar_values) <- plot_categories$Category
-
-bar_positions <- barplot(
-
-bar_values,
-
-col = c("steelblue" "darkseagreen3")[
-
+  names(bar_values) <- plot_categories$Category
+    bar_positions <- barplot(
+    bar_values,
+col = c("steelblue", "darkseagreen3")[
 seq_along(bar_values)
-
-]
+],
 
 border = NA,
-
-ylim = c(0, max(bar_values) * 1.2)
-
-ylab = "Number of predicted CDS"
-
-= "Annotation composition of metabat.45"
-
+  ylim = c(0, max(bar_values) * 1.2),
+  ylab = "Number of predicted CDS"
+  = "Annotation composition of metabat.45",
 las = 1
-
 )
 
 text(
+    x = bar_positions,
+    y = bar_values,
+  labels = paste0(
 
-x = bar_positions,
-
-y = bar_values,
-
-labels = paste0(
-
-format(bar_values, big.mark = " ")
-
-"\n("
+format(bar_values, big.mark = " "),
+  "\n(",
 
 plot_categories$Percentage,
-
 "%)"
-
-)
+),
 
 pos = 3,
-
-cex = 0.9
-
+  cex = 0.9
 )
 
 ```
@@ -545,32 +423,21 @@ boxplot(
 
 cds_summary$Predicted_CDS,
 
-horizontal = TRUE
-
-col = "lightsteelblue"
-
-border = "steelblue4"
+horizontal = TRUE,
+  col = "lightsteelblue",
+  border = "steelblue4",
 
 xlab = "Predicted CDS per genome bin"
-
 = "Variation in predicted coding sequence counts"
-
 )
 
 stripchart(
-
-cds_summary$Predicted_CDS,
-
-method = "jitter"
-
-jitter = 0.08
-
-pch = 19
-
-col = "steelblue4"
-
+  cds_summary$Predicted_CDS,
+  method = "jitter",
+  jitter = 0.08,
+    pch = 19,
+col = "steelblue4",
 add = TRUE
-
 )
 
 ```

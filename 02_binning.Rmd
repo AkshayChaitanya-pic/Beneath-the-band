@@ -119,8 +119,6 @@ MetaBAT2 produced 76 candidate microbial genome bins, which together contained 4
 
 | Metric | Result |
 
-|---|---:|
-
 Total assembled sequence | 66,690,645 bp |
 
 | MetaBAT2 genome bins | 76 |

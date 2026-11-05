@@ -126,8 +126,6 @@ contained 40,048,381 base pairs (40.05 Mb).
 
 Metric \| Result \|
 
-\|—\|—:\|
-
 Total assembled sequence \| 66,690,645 bp \|
 
 MetaBAT2 genome bins \| 76 \|
