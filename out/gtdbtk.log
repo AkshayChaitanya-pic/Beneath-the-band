@@ -1,0 +1,44 @@
+[2026-11-03 13:43:22] INFO: GTDB-Tk v2.3.0
+[2026-11-03 13:43:22] INFO: gtdbtk classify_wf -x fa --cpus 2 --genome_dir genomes --out_dir out --skip_ani_screen
+[2026-11-03 13:43:22] INFO: Using GTDB-Tk reference data version r207: /refdata/
+[2026-11-03 13:43:22] ERROR: Input directory does not exist: genomes
+[2026-11-03 13:43:22] ERROR: Controlled exit resulting from an unrecoverable error or warning.
+
+================================================================================
+EXCEPTION: BioLibDirNotFound
+  MESSAGE: Input directory does not exist: genomes
+________________________________________________________________________________
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/site-packages/gtdbtk/__main__.py", line 102, in main
+    gt_parser.parse_options(args)
+  File "/usr/local/lib/python3.8/site-packages/gtdbtk/main.py", line 1167, in parse_options
+    self.identify(options,classified_genomes)
+  File "/usr/local/lib/python3.8/site-packages/gtdbtk/main.py", line 296, in identify
+    check_dir_exists(options.genome_dir)
+  File "/usr/local/lib/python3.8/site-packages/gtdbtk/biolib_lite/common.py", line 121, in check_dir_exists
+    raise BioLibDirNotFound('Input directory does not exist: ' + input_dir)
+gtdbtk.biolib_lite.exceptions.BioLibDirNotFound: Input directory does not exist: genomes
+================================================================================
+[2026-11-03 13:46:36] INFO: GTDB-Tk v2.3.0
+[2026-11-03 13:46:36] INFO: gtdbtk classify_wf -x fa --cpus 2 --genome_dir genomes --out_dir out --skip_ani_screen
+[2026-11-03 13:46:36] INFO: Using GTDB-Tk reference data version r207: /refdata/
+[2026-11-03 13:46:36] ERROR: Input directory does not exist: genomes
+[2026-11-03 13:46:36] ERROR: Controlled exit resulting from an unrecoverable error or warning.
+
+================================================================================
+EXCEPTION: BioLibDirNotFound
+  MESSAGE: Input directory does not exist: genomes
+________________________________________________________________________________
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/site-packages/gtdbtk/__main__.py", line 102, in main
+    gt_parser.parse_options(args)
+  File "/usr/local/lib/python3.8/site-packages/gtdbtk/main.py", line 1167, in parse_options
+    self.identify(options,classified_genomes)
+  File "/usr/local/lib/python3.8/site-packages/gtdbtk/main.py", line 296, in identify
+    check_dir_exists(options.genome_dir)
+  File "/usr/local/lib/python3.8/site-packages/gtdbtk/biolib_lite/common.py", line 121, in check_dir_exists
+    raise BioLibDirNotFound('Input directory does not exist: ' + input_dir)
+gtdbtk.biolib_lite.exceptions.BioLibDirNotFound: Input directory does not exist: genomes
+================================================================================

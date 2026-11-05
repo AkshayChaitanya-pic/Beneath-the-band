@@ -1,12 +1,15 @@
-# The Metagenome of Black Band Disease
 
-<!--
-This README is the front page of your repository on GitHub. Replace this
-template text with your own introduction. A few sentences is enough: what
-the data are, what you did with them and what you found.
--->
+# Beneath the Band
+### Exploring Coral Black Band Disease Through Metagenomics
 
-Assembly, binning and functional analysis of a nanopore metagenome from black band disease (BBD) on the coral *Acropora hyacinthus*, done for [Workshop 4](https://mb5370.bioinformatics.guide/workshop4.html) of the MB5370 Marine Genomics module.
+Black band disease (BBD) is a coral disease associated with a complex community of microorganisms. Understanding these microbes and their potential functions can help us explore the biological processes associated with the disease.
+
+This project is part of MB5370 – Techniques in Marine Science 1 at James Cook University. It uses a subset of Oxford Nanopore sequencing data collected from black band disease lesions on *Acropora hyacinthus* at Orpheus Island, Queensland, during research conducted by Julia Hung.
+
+Through this project, I aim to develop practical skills in metagenomic assembly, genome binning, quality assessment, taxonomic classification, gene annotation and metabolic pathway analysis.
+
+**Beneath the Band** documents my workflow, results and challenges as I explore how bioinformatics can help us better understand microbial communities associated with coral disease.
+
 
 ## Analysis
 

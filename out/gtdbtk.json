@@ -1,0 +1,9 @@
+{
+    "version": "2.3.0",
+    "command_line": "gtdbtk classify_wf -x fa --cpus 2 --genome_dir genomes --out_dir out --skip_ani_screen",
+    "database_version": "r207",
+    "database_path": "/refdata/",
+    "steps": [],
+    "output_dir": "out",
+    "path": "out/gtdbtk.json"
+}

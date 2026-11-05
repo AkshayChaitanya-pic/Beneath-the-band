@@ -1,6 +1,6 @@
 ---
 title: "BBD Metagenome: Taxonomy"
-author: "Your Name"
+author: "Akshay Chaitanya Talachintala"
 date: "`r Sys.Date()`"
 output:
   github_document:
@@ -17,9 +17,537 @@ knitr::opts_hooks$set(engine = function(options) {
 })
 ```
 
-<!--
-Explain what this step does and why, and copy each command you ran into a
-bash chunk. R chunks run from the top of the repository.
--->
 
-Taxonomic classification of the most complete bins with GTDB-Tk. Commands for this step were run in `gtdbtk/`.
+## 4. Taxonomic Classification of Metagenome-Assembled Genomes
+
+### 4.1 Research Context and Objectives
+
+Black band disease (BBD) is linked with a microbial mat that appears on infected coral tissue. The microbial community can have organisms with ways of getting energy, which might influence the chemical and biological conditions in the mat. Taxonomic classification helps in identifying the organisms in the genomic material that was recovered. It does not by itself tell what functions these organisms have or how they contribute to the disease.
+
+This study looked at genome bins that came from sequencing data taken from BBD lesions on *Acropora hyacinthus* at Orpheus Island in Queensland, Australia. The goal was to use the Genome Taxonomy Database Toolkit (GTDB-Tk) to classify the genome bins and set a taxonomic base for later gene annotation and metabolic pathway analysis.
+
+This analysis looked at three questions:
+
+1. Which bacterial groups are found among the selected genome bins?
+
+2. Does the genomic material recovered include species known to be part of BBD communities?
+
+3. What possible biological questions come up from these classifications. What can't be known just from taxonomy alone?
+
+### 4.2 Scientific Background
+
+#### 4.2.1 Genome-resolved metagenomics
+
+Metagenomic sequencing captures DNA from multiple organisms in an environmental sample. Assembly takes the pieces of DNA and puts them together into longer sequences. Genome binning groups these sequences into microbial genomes. These reconstructed genomes are usually called metagenome-assembled genomes (MAGs). The quality and how much they are contaminated can vary a lot.
+
+Genome-resolved methods allow taxonomic assignments to be connected with predicted genes. However the quality of the genomes and the availability of good reference sequences affect how reliable and detailed the analysis can be.
+
+#### 4.2.2 Genome-based taxonomic classification
+
+GTDB-Tk uses genes that are found in many bacteria and archaea to classify their genomes. It places these genomes on a tree based on the Genome Taxonomy Database. Depending on how good the genome's how well it is represented in the database the classification can be at various levels. GTDB names can include names and endings which are kept as they are reported.
+
+Being assigned a taxonomic name does not mean the organism is active has certain genes turned on is common or is directly causing the disease.
+
+### 4.3 Methods
+
+#### 4.3.1 Selection of genome bins
+
+A CheckM evaluation looked at **77 candidate genome bins**: 76 from MetaBAT2 and the largest assembled contig, `contig_134`. Following the workshop process bins with an estimated completeness **above 15%** were kept. This gave **16 bins** (about **20.8%** of those evaluated) listed in `checkm/bbd_topbins.txt`.
+
+The threshold was used to keep some for work not to say all 16 are high-quality MAGs. Some of the kept bins were not complete.
+
+#### 4.3.2 Preparing the GTDB-Tk input directory
+
+The following commands were run from `~/Beneath-the-band/gtdbtk`. The Bash snippets show the process; they are not run again when the report is made.
+
+```{bash, eval=FALSE}
+
+cd ~/Beneath-the-band/gtdbtk
+
+while read bin; do
+
+echo "$bin"
+
+done <../checkm/bbd_topbins.txt
+
+```
+
+The paths to the genome FASTA files were checked before copying the files:
+
+```{bash, eval=FALSE}
+
+while read bin; do
+
+echo "../metabat/bins_bbd/${bin}.fa"
+
+done <../checkm/bbd_topbins.txt
+
+```
+
+```{bash, eval=FALSE}
+
+mkdir -p genomes
+
+while read bin; do
+
+cp "../metabat/bins_bbd/${bin}.fa" genomes/
+
+done <../checkm/bbd_topbins.txt
+
+ls genomes
+
+genomes/*.fa | wc -l
+
+```
+
+The input folder had **16 FASTA files**.
+
+#### 4.3.3 GTDB-Tk classification workflow
+
+GTDB-Tk was used on the universitys SLURM computing system using a container and the GTDB reference database mounted from `/pvol/data/mg/gtdbtkdata/release207_v2/`.
+
+The following script was saved as `gtdbtk/run_gtdbtk.sh`:
+
+```{bash, eval=FALSE}
+
+#!/bin/bash
+
+#SBATCH --time=120
+
+#SBATCH --cpus-per-task=2 --mem=56gb
+
+echo "Starting gtdbtk in $(pwd) at $(date)"
+
+shopt -s expand_aliases
+
+alias gtdbtk='apptainer run -B /pvol:/pvol,/pvol/data/mg/gtdbtkdata/release207_v2/:/refdata /pvol/data/sif/gtdbtk.sif'
+
+gtdbtk classify_wf \
+
+-x fa \
+
+--cpus 2 \
+
+--genome_dir genomes \
+
+--out_dir out \
+
+--skip_ani_screen
+
+echo "Finished gtdbtk in $(pwd) at $(date)"
+
+```
+
+The script asked for **two CPU cores** **56 GB of memory**. A **120-minute time limit**.
+
+The `--skip_ani_screen` option skipped the average nucleotide identity (ANI) screening step; it does not mean that all later steps avoid ANI-related information.
+
+#### 4.3.4 Job submission and monitoring
+
+```{bash, eval=FALSE}
+
+sbatch run_gtdbtk.sh
+
+squeue -j 511
+
+sacct -j 511 \
+
+--format=JobID,State Elapsed,MaxRSS
+
+tail -n 25 slurm-511.out
+
+```
+
+The job got the SLURM ID **511**. The run went through placement and was later marked as **COMPLETED**.
+
+#### 4.3.5 Retrieving classification results
+
+```{bash, eval=FALSE}
+
+ls -lh out/gtdbtk.bac120.summary.tsv
+
+cp out/gtdbtk.bac120.summary.tsv.
+
+cut -f1,2 gtdbtk.bac120.summary.tsv
+
+awk 'NR>1 {n++} END {print "Genomes in summary:" n}' \
+
+gtdbtk.bac120.summary.tsv
+
+```
+
+The bacterial summary included **16 genome entries** matching the input set. Not every entry had a clear phylum assignment.
+
+### 4.4 Results
+
+#### 4.4.1 Overview of taxonomic recovery
+
+GTDB-Tk created summary records for all **16** genome bins that were chosen. **Fifteen** bins got a phylum assignment while `metabat.70` was not classified at the phylum level.
+
+The bins that were classified were found in Campylobacterota, Desulfobacterota, Desulfobacterota_I, Firmicutes_A, Bacteroidota and Cyanobacteriota.
+
+These results show the makeup of the **selected genome bins** not the actual amount of each microorganism in the original BBD mat.
+
+#### 4.4.2 Importing and summarising the GTDB-Tk output
+
+The following code reads the actual GTDB-Tk summary and makes the tables used in the figures.
+
+It stops with an error if the file is missing or doesn't have the columns.
+
+```{r taxonomy-import}
+
+# Knit this Rmd from the Beneath-the-band project root.
+
+input_file <- "gtdbtk/gtdbtk.bac120.summary.tsv"
+
+if (!file.exists(input_file)) {
+stop("Cannot find ", input_file,
+". Set the working directory to ~/Beneath-the-band ",
+ "or check that the GTDB-Tk summary has been copied there."
+)
+
+}
+
+taxonomy <- read.delim(
+ input_file,
+ sep = "\t",
+ header = TRUE,
+ check.names = FALSE,
+ stringsAsFactors = FALSE,
+ quote = "",
+ comment.char = ""
+ )
+
+required_columns <- c("user_genome", "classification")
+
+if (!all(required_columns %in% names(taxonomy))) {
+
+stop(
+
+"GTDB-Tk file is missing required columns: ",
+ paste(
+ setdiff(required_columns, names(taxonomy)),
+collapse = ", "
+)
+)
+}
+
+# Extract a taxonomic rank keeping GTDB-specific
+
+# names and suffixes.
+
+extract_rank <- function(classification, prefix) {
+  vapply(
+    strsplit(classification, ";", fixed = TRUE), function(parts) {
+      item <- parts[startsWith(parts, prefix)] 
+      if (length(item) ==OL){
+        return(NA_character_)
+      }
+      value<- substring(item[1],
+                        nchar(prefix) +1L)
+      if(!nzchar(value)) {
+        NA_character_
+        }else{
+            value
+        }
+  },
+ character(1)
+ )
+}
+
+taxonomy_summary <- data.frame(
+
+Genome = taxonomy$user_genome,
+
+Phylum = extract_rank(taxonomy$classification, "p__"),
+
+Class = extract_rank(taxonomy$classification, "c__"),
+
+Order = extract_rank(taxonomy$classification, "o__"),
+
+Family = extract_rank(taxonomy$classification, "f__"),
+
+Genus = extract_rank(taxonomy$classification, "g__"),
+
+Species = extract_rank(taxonomy$classification, "s__"),
+
+stringsAsFactors = FALSE
+
+)
+
+# Use "Unclassified" for empty or unresolved ranks
+
+# in the display table.
+
+rank_columns <- c(
+
+"Phylum", "Class", "Order",
+
+"Family", "Genus", "Species"
+
+)
+
+for (column in rank_columns) {
+
+missing_rank <- is.na(taxonomy_summary[[column]]) |
+
+!nzchar(trimws(taxonomy_summary[[column]]))
+
+taxonomy_summary[[column]][missing_rank] <- "Unclassified"
+
+}
+
+stopifnot(nrow(taxonomy_summary) == 16L)
+
+knitr::kable(
+taxonomy_summary[
+
+, c("Genome", "Phylum", "Genus", "Species")
+],
+
+caption = paste(
+
+"GTDB-Tk assignments for the 16 selected" ,
+
+"BBD genome bins. Unresolved ranks are" ,
+
+"labelled Unclassified."
+
+ )
+)
+
+```
+
+The table is made directly from the GTDB-Tk classification file of being written by hand.
+
+#### 4.4.3 Distribution, across phyla
+
+**Campylobacterota** had **five** bins.
+
+**Desulfobacterota** and **Desulfobacterota_I** made up **four bins in total** (three and one respectively).
+
+Three bins were given the label **Firmicutes_A** two were labeled **Bacteroidota**. One was labeled **Cyanobacteriota**.
+
+One bin did not get a classification at the phylum level.
+
+The figure brings together the two Desulfobacterota labels ** for showing purposes**; the original GTDB assignments are kept separate in the classification table.
+
+```{r taxonomy-figure, fig.width=9, fig.height=5.5 fig.align='center' fig.cap='Number of selected BBD genome bins in each GTDB phylum group. Desulfobacterota and Desulfobacterota_I are combined for visualisation. Bin counts are not abundances.'}
+
+plot_data <- taxonomy_summary
+
+plot_data$Phylum_group <- plot_data$Phylum
+
+plot_data$Phylum_group[
+
+plot_data$Phylum_group %in%
+
+c("Desulfobacterota" "Desulfobacterota_I")
+
+] <- "Desulfobacterota (combined)"
+
+counts <- sort(
+
+table(plot_data$Phylum_group)
+
+decreasing = TRUE
+
+)
+
+op <- par(mar = c(5, 13 3.5 2))
+
+positions <- barplot(
+
+rev(counts)
+
+horiz = TRUE
+
+las = 1,
+
+xlim = c(0, max(counts) + 1.2)
+
+col = "steelblue"
+
+border = NA,
+
+xlab = "Number of selected genome bins"
+
+main = " distribution of BBD genome bins"
+
+)
+
+text(
+
+x = rev(as.numeric(counts)). 0.15
+
+Y = positions,
+
+labels = rev(as.numeric(counts))
+
+cex = 0.95
+
+)
+
+par(op)
+
+```
+
+#### 4.4.4 Resolution of taxonomic assignments
+
+GTDB-Tk assignments showed different levels of detail in the taxonomic information.
+
+The figure below shows how many of the 16 bins had an assignment at each level.
+
+This is a **description of the GTDB-Tk output**, not a confirmation of the correctness of every assignment.
+
+```{r taxonomy-resolution, fig.width=8.5. Fig.align='center' fig.cap='Number of selected genome bins with a resolved GTDB-Tk label at each taxonomic rank. The figure is calculated directly from the GTDB-Tk summary.'}
+
+rank_columns <- c(
+
+"Phylum" "Class" "Order"
+
+"Family" "Genus" "Species"
+
+)
+
+resolved <-
+
+taxonomy_summary[rank_columns]
+
+function(x) sum(x != "Unclassified")
+
+integer(1)
+
+)
+
+op <- par(mar = c(7, 4.5, 3 1.5))
+
+positions <- barplot(
+
+resolved
+
+col = "steelblue"
+
+border = NA,
+
+ylim = c(0, 17)
+
+ylab = "Number of genome bins"
+
+= "Taxonomic resolution of selected genome bins"
+
+las = 2
+
+)
+
+text(
+
+positions
+
+resolved + 0.5
+
+labels = resolved,
+
+cex = 0.9
+
+)
+
+par(op)
+
+```
+
+#### 4.4.5 Recovery of a *Roseofilum*-classified genome
+
+One of the most useful assignments was for `metabat.45`.
+
+GTDB-Tk placed this bin in **Cyanobacteriota** genus ***Roseofilum*** with the species name ***Roseofilum reptotaenium_A***.
+
+The `_A` part is part of the GTDB name. Has not been changed to a regular species name.
+
+The exact assignment can be checked in the output:
+
+```{bash, eval=FALSE}
+
+awk -F '\t' '$1=="metabat.45" {print $2}' \
+
+gtdbtk.bac120.summary.tsv
+
+```
+
+CheckM previously found `metabat.45` to have **97.56% completeness** and **0.67% contamination** making it a good candidate for more analysis.
+
+The genus *Roseofilum* is connected to BBD mats but finding it here does not prove it is active, common or causes coral tissue damage.
+
+#### 4.4.6 bacterial lineages
+
+Several bins were placed in **Campylobacterota** including some in *Halarcobacter* *Poseidonibacter* and *Sulfurospirillum_A*.
+
+Other bins were found in **Desulfobacterota**. *Desulfobacterota_I**, including one in *Maridesulfovibrio*.
+
+These groups offer options for looking into sulfur or breathing-related ways of getting energy during later steps; their roles can't be guessed just from their names.
+
+Other bins were in **Firmicutes_A**. *Bacteroidota**.
+
+The largest contig that was taken out separately `contig_134` was in Bacteroidota and in genus **UBA2561**.
+
+CheckM found this bin to be **97.62% ** and **1.64% contaminated**.
+
+In contrast `metabat.70` was not classified at the phylum level showing that being in the GTDB-Tk results does not always mean there is a classification.
+
+### 4.5 Discussion
+
+#### 4.5.1 Taxonomic diversity in the selected genome set
+
+The bins collected cover bacterial groups rather than just one type of bacteria.
+
+This matches what is expected in a mat but the 16 bins are just a part of the genetic material that could be put together grouped and kept using the workshops completeness rule.
+
+The way the bins are spread across phyla should not be seen as the way the cells or genetic material were spread in the sample.
+
+#### 4.5.2 Potential implications for interactions
+
+Finding a genome from *Roseofilum* along with bins from Campylobacterota and Desulfobacterota suggests looking more into the communitys possible ways of getting energy.
+
+BBD mats might have differences in light, oxygen and other chemicals, which gives a reason to check for genes that are linked to different ways of getting energy.
+
+However these classifications do not show energy exchange, physical connections or interactions between the found organisms.
+
+Such ideas would need information from functions, how the organisms work or where they are.
+
+#### 4.5.3 Taxonomy and functional potential are not the same
+
+GTDB-Tk gives classifications based on genomes; it does not say what functions are present, complete, active or used.
+
+Very similar organisms can have different genes and how they work.
+
+The next steps look at predicted genes and energy processes making a difference between what the genome can do and what is actually happening.
+
+#### 4.5.4. Uncertainty
+
+**Genome completeness:** The than 15% rule kept many incomplete genomes. Missing parts of the genome can change how the classification is done and energy process studies.
+
+**Reference representation:** GTDB-Tk classifications depend on reference genomes; some groups may not be clear.
+
+**Database names:** GTDB uses genome-based names. Adds special parts. These are kept as they are, like `Firmicutes_A` `Desulfobacterota_I` and *Roseofilum reptotaenium_A*.
+
+**Recovery bias:** The bins chosen do not show all the material in the original BBD community.
+
+**Ecological interpretation:** Finding a genome does not show that the organism is alive how common it is, how active its genes are or if it causes disease.
+
+### 4.6
+
+GTDB-Tk gave classifications for all **16** genome bins from the BBD metagenomic assembly.
+
+Fifteen of them got a classification at the phylum level covering bacterial groups while one did not get a classification at that level.
+
+The finding of the complete `metabat.45` bin that is in *Roseofilum* is a good target for more study along with other groups that could be important for energy processes.
+
+The next step uses **Prokka** to find genes and label functions setting up a base for later energy process studies.
+
+Just having a classification is not proof of energy activity or being involved in BBD.
+
+### 4.7 References
+
+Chaumeil, P.-A., Mussig A. J., Hugenholtz, P., & Parks D. H. (2020). GTDB-Tk: A toolkit to classify genomes, with the Genome Taxonomy Database. *Bioinformatics, 36*(6) 1925–1927. Https://doi.org/10.1093/bioinformatics/btz848
+
+Parks, D. H., Chuvochina, M., Waite, D. W., Rinke, C., Skarshewski, A., Chaumeil, P.-A. & Hugenholtz, P. (2018). A standardized bacterial taxonomy based on genome phylogeny substantially revises the tree of life. *Nature Biotechnology, 36* 996–1004. Https://doi.org/10.1038/nbt.4229

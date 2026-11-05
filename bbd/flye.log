@@ -1,0 +1,10 @@
+[2026-11-02 14:04:51] root: INFO: Starting Flye 2.9.6-b1802
+[2026-11-02 14:04:51] root: DEBUG: Cmd: /usr/local/bin/flye --nano-hq bbd_0.1.fastq.gz --threads 12 --out-dir bbd --meta
+[2026-11-02 14:04:51] root: DEBUG: Python version: 3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]
+[2026-11-02 14:04:51] root: ERROR: Can't open /home/jd145971/Beneath-the-band/bbd_0.1.fastq.gz
+[2026-11-02 14:04:51] root: ERROR: Pipeline aborted
+[2026-11-02 14:04:56] root: INFO: Starting Flye 2.9.6-b1802
+[2026-11-02 14:04:56] root: DEBUG: Cmd: /usr/local/bin/flye --nano-hq bbd_0.1.fastq.gz --threads 12 --out-dir bbd --meta
+[2026-11-02 14:04:56] root: DEBUG: Python version: 3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]
+[2026-11-02 14:04:56] root: ERROR: Can't open /home/jd145971/Beneath-the-band/bbd_0.1.fastq.gz
+[2026-11-02 14:04:56] root: ERROR: Pipeline aborted
