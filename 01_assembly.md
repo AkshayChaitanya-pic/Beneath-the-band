@@ -1,0 +1,129 @@
+Beneath the Band: Metagenome Assembly
+================
+Akshay Chaitanya Talachintala
+2026-11-05
+
+## 1. Metagenome Assembly
+
+### Objective
+
+The goal of this step was to assemble Oxford sequencing reads from a
+black band disease (BBD) microbial community into longer DNA sequences
+known as contigs. These contigs form the basis for reconstructing
+microbial genomes and studying the composition of the microbial
+community linked to BBD.
+
+### Background
+
+The sequencing data came from BBD lesions sampled from *Acropora
+hyacinthus* corals at Orpheus Island, Queensland. This research was
+carried out by Julia Hung. Since the sample contains DNA from different
+microorganisms the analysis used Flye in metagenomic mode to reconstruct
+sequences from the mixed microbial community. Read sequencing helps in
+resolving genomic regions that are hard to assemble using short reads,
+which can lead to more continuous reconstructed microbial genomes.
+
+### Input data
+
+The input consisted of a subset of the Oxford Nanopore sequencing
+dataset provided as `bbd_0.1.fastq.gz` (approximately 2.9 GB). The
+analysis commands were run from the `flye/` directory within the
+`Beneath-the-band` project.
+
+### Preparing the sequencing data
+
+A symbolic link was created to access the sequencing reads without
+duplicating the dataset.
+
+``` bash
+
+ln -s /pvol/data/metagenome_assembly/bbd_0.1.fastq.gz.
+```
+
+This allowed Flye to access the input file directly from the project
+directory while saving storage space.
+
+### Running Flye
+
+Flye v2.9.6 was used to assemble the sequencing reads. The `--nano-hq`
+option specifies high-quality Oxford Nanopore. –Meta\` enables
+metagenomic assembly. The assembly was set to use 12 CPU tasks and 20 GB
+of memory on the JCU computing cluster. The analysis was submitted
+through SLURM using the following command:
+
+``` bash
+
+sbatch run_flye_bbd.sh
+```
+
+The SLURM script ran Flye using the supplied sequencing data and saved
+the assembly to the `bbd/` output directory.
+
+### Assembly results
+
+The Flye metagenomic assembly completed successfully using the Oxford
+Nanopore sequencing reads from the BBD community. The analysis was
+submitted to the JCU computing cluster as SLURM job **432**.
+
+**Assembly execution summary**
+
+Parameter \| Result \|
+
+\|—\|—\|
+
+Assembler \| Flye v2.9.6 \|
+
+Input \| `bbd_0.1.fastq.gz` \|
+
+Input file size \| Approximately 2.9 GB \|
+
+SLURM job \| 432 \|
+
+Job status \| COMPLETED \|
+
+Execution time \| 53 minutes 42 seconds \|
+
+Output file \| `flye/bbd/assembly.fasta` \|
+
+**Assembly statistics**
+
+Metric \| Result \|
+
+\|—\|—:\|
+
+Number of assembled contigs \| 7,979 \|
+
+Total assembly length \| 66,690,645 bp \|
+
+Total assembly length (Mb) \| 66.69 \|
+
+Longest contig \| 4,706,700 bp \|
+
+Longest contig (Mb) \| 4.71 \|
+
+The assembly produced **7,979 contigs** totaling approximately **66.69
+Mb** of assembled sequence. The longest contig was about **4.71 Mb**
+showing that Flye successfully reconstructed a continuous genomic
+sequence from the metagenomic dataset.
+
+However contig length does not confirm assembly accuracy or genome
+completeness. These qualities need evaluation through genome binning and
+quality analysis.
+
+The resulting assembly was used for genome reconstruction with MetaBAT2.
+
+### Verification
+
+The SLURM job status and assembly output were checked using the
+following commands:
+
+``` bash
+
+sacct -j 432 --format=JobID,State,MaxRSS Elapsed
+
+ls -lh ~/Beneath-the-band/flye/bbd/assembly.fasta
+```
+
+The assembly was confirmed to have completed and the output FASTA file
+was present. The assembled contigs were then used as input, for genome
+binning and further investigation of the BBD community.
