@@ -1,58 +1,89 @@
-
 # Beneath the Band
-### Exploring Coral Black Band Disease Through Metagenomics
 
-Black band disease (BBD) is a coral disease associated with a complex community of microorganisms. Understanding these microbes and their potential functions can help us explore the biological processes associated with the disease.
+### Metagenomic Analysis of Coral Black Band Disease
 
-This project is part of MB5370 – Techniques in Marine Science 1 at James Cook University. It uses a subset of Oxford Nanopore sequencing data collected from black band disease lesions on *Acropora hyacinthus* at Orpheus Island, Queensland, during research conducted by Julia Hung.
+**MB5370 – Techniques in Marine Science 1**
 
-Through this project, I aim to develop practical skills in metagenomic assembly, genome binning, quality assessment, taxonomic classification, gene annotation and metabolic pathway analysis.
+**James Cook University, Australia**
 
-**Beneath the Band** documents my workflow, results and challenges as I explore how bioinformatics can help us better understand microbial communities associated with coral disease.
+**Author:** Akshay Chaitanya
 
+## Project overview
 
-## Analysis
+This repository shows a bioinformatics analysis of a part of Oxford Nanopore sequencing data from black band disease areas on *Acropora hyacinthus* that was collected at Orpheus Island, Queensland.
 
-<!--
-Each link opens the knitted version of one RMarkdown file. Knit each .Rmd,
-then add both the .md file and its _files folder (if there is one) to git.
--->
+The data was given from research done by **Julia Hung**. Was used as part of MB5370 – Techniques in Marine Science 1 at James Cook University.
 
-1. [Assembly](01_assembly.md)
-2. [Binning](02_binning.md)
-3. [Bin quality](03_bin_quality.md)
-4. [Taxonomy](04_taxonomy.md)
-5. [Gene annotation](05_gene_annotation.md)
-6. [Metabolic pathways](06_metabolic_pathways.md)
+The project follows a process to explore how sequencing data can be used to create microbial genomes check their quality find microorganisms and look into their possible biological functions.
 
-## Repository layout
+By following the analysis readers can see how raw sequencing data are processed and understood through bioinformatics tools from genome assembly to metabolic pathway creation.
 
-Each step has a numbered RMarkdown file at the top of the repository and a folder where its commands are run.
+## Analysis workflow
 
-| Step | Notes | Folder | Tool |
-| --- | --- | --- | --- |
-| Assembly | `01_assembly.Rmd` | `flye/` | Flye |
-| Binning | `02_binning.Rmd` | `metabat/` | MetaBAT 2 |
-| Bin quality | `03_bin_quality.Rmd` | `checkm/` | CheckM |
-| Taxonomy | `04_taxonomy.Rmd` | `gtdbtk/` | GTDB-Tk |
-| Gene annotation | `05_gene_annotation.Rmd` | `prokka/` | Prokka |
-| Metabolic pathways | `06_metabolic_pathways.Rmd` | `minpath/` | MinPath |
+| Step | Tool | Purpose |
 
-`index.Rmd` joins all six steps into one web page. Knit it to make `index.html`.
+|------|------|---------|
 
-<!--
-Notes on working in this repository (you can delete this once you've read it):
+| 1. Assembly | Flye | Put sequencing reads together into DNA sequences (contigs).
 
-- Every folder the analysis needs is already here, so you won't need mkdir.
-  If a command complains that a folder doesn't exist, run pwd to check where
-  you are.
-- Run commands in the Terminal, then copy them into a bash chunk in the
-  matching .Rmd. Knitting shows bash chunks but doesn't run them again, so
-  long jobs and sbatch submissions won't be repeated.
-- R chunks run from the top of the repository, so give paths like
-  checkm/checkm_results_bbd.txt.
-- Git ignores everything inside the analysis folders except shell scripts
-  and small summary tables (.txt and .tsv files) saved directly in the
-  folder. Reads, assemblies and bins are far too big for git. Never use
-  git add -f to get around this.
--->
+| 2. Binning | MetaBAT2 | Put contigs together into possible microbial genomes. |
+
+3. Genome quality | CheckM | Check how complete and clean the genomes are. |
+
+4. Taxonomy GTDB-Tk | Find out the taxonomic classification of the genomes found. |
+
+5. Gene annotation | Prokka | Find genes and their possible jobs. |
+
+6. Metabolic pathways | MinPath | Look at metabolic processes using enzyme information. |
+
+## Repository contents
+
+### Main report
+
+- [index.html](index.html) – scientific report that has been shown.
+
+- [index.Rmd](index.Rmd) – R Markdown file that has the report and analysis.
+
+### Processing logs
+
+Every processing log has the methods, commands and results for a stage of the process.
+
+1. [01_Assembly.md](01_assembly.md) – Metagenomic assembly with Flye.
+
+2. [02_Binning.md](02_binning.md) – Genome binning with MetaBAT2.
+
+3. [03_Bin_quality.md](03_bin_quality.md) – Genome quality check with CheckM.
+
+4. [04_Taxonomy.md](04_taxonomy.md) – Taxonomic classification with GTDB-Tk.
+
+5. [05_Gene_annotation.md](05_gene_annotation.md) – Functional gene annotation with Prokka.
+
+6. [06_Metabolic_pathways.md](06_metabolic_pathways.md) – Metabolic pathway creation with MinPath.
+
+Each processing log also has a matching `.Rmd` file.
+
+### Analysis directories
+
+| Directory | Contents |
+
+|-----------|----------|
+
+| `flye/` | Assembly scripts and results |
+
+| `metabat/` | Genome binning files |
+
+| `checkm/` | Genome quality check |
+
+| `gtdbtk/` | Taxonomic classification |
+
+| `prokka/` | Gene annotation |
+
+| `minpath/` | Metabolic pathway analysis |
+
+| `images/` | Pictures and drawings |
+
+## Data availability
+
+The repository has processing logs, analysis scripts and some results. Big sequencing files, genome assemblies and other files are not on GitHub.
+
+To do the analysis again you need to have the original sequencing data and the right bioinformatics tools.

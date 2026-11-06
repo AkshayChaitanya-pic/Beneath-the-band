@@ -39,3 +39,20 @@ slurm-*.out
 *.gfa
 *.bam
 *.sam
+
+# Temporary bioinformatics logs
+/bbd/*.log
+/out/*.log
+/out/*.json
+
+# Large coverage tables
+/metabat/depths_bbd.txt
+
+# R Markdown temporary output
+*_cache/
+*.utf8.md
+*.knit.md
+
+# Operating system files
+.DS_Store
+Thumbs.db
