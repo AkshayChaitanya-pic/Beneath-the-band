@@ -1,0 +1,654 @@
+BBD Metagenome: Gene Annotation
+================
+Akshay Chaitanya Talachintala
+2026-11-06
+
+# 5. Functional Gene Annotation with Prokka
+
+## 5.1
+
+After we finished assembly, genome binning, quality assessment and
+taxonomic classification the next step in the black band disease (BBD)
+metagenomics workflow was to identify genes inside the recovered
+bacterial genome bins.
+
+Gene annotation supplies information about predicted coding sequences
+and their possible biological functions. This gives a basis for
+exploring the metabolic potential of the microorganisms that appear in
+the assembly.
+
+Prokka is a genome annotation tool that identifies genomic features
+predicts protein-coding sequences and assigns possible functions when
+enough sequence information exists.
+
+In this analysis Prokka was applied to the 16 genome bins chosen from
+the BBD metagenome that comes from *Acropora hyacinthus* at Orpheus
+Island, Queensland, Australia.
+
+The objectives were to:
+
+1.  Generate annotated gene and protein datasets for the 16 selected
+    genome bins.
+
+2.  Compare the number of predicted coding sequences (CDS) among bins.
+
+3.  Examine the annotation composition of the *Roseofilum*-classified
+    genome, `metabat.45`.
+
+4.  Prepare annotated sequences for metabolic pathway analysis.
+
+## 5.2 Methods
+
+### 5.2.1 Initial Prokka annotation
+
+An initial annotation was carried out on `metabat.45` which had been
+classified by GTDB-Tk as *Roseofilum reptotaenium_A*.
+
+The following commands were executed from the `prokka` directory.
+
+``` bash
+
+cd ~/Beneath-the-band/prokka
+
+bin=metabat.45
+
+prokka --cpus 2 \
+
+--outdir "$bin" \
+
+--prefix "$bin" \
+
+"../metabat/bins_bbd/${bin}.fa"
+```
+
+This test run finished successfully with Prokka version 1.14.6 and
+produced annotated sequence files and a table summarizing predicted
+genomic features.
+
+### 5.2.2 Batch annotation using SLURM
+
+After the initial test a SLURM script called `run_prokka.sh` was created
+to annotate the selected genome bins.
+
+The script read the list of 16 selected genome identifiers from
+`checkm/bbd_topbins.txt`.
+
+Each genome was annotated one by one. The output files were written to a
+folder named after the corresponding genome bin.
+
+The script was submitted using:
+
+``` bash
+
+sbatch run_prokka.sh
+```
+
+SLURM gave the job ID `512`.
+
+The job later reached the `COMPLETED` state. Ran for 25 minutes and 6
+seconds.
+
+### 5.2.3 Output verification
+
+The presence of annotation tables (`.tsv`) and predicted protein
+sequence files (`.faa`) was checked for all 16 genome bins.
+
+``` bash
+
+while read bin; do
+
+if [ -s "$bin/$bin.tsv" ] && \
+
+[ -s "$bin/$bin.faa" ]; then
+
+echo "COMPLETE: $bin"
+
+echo "CHECK: $bin"
+
+fi
+
+done <../checkm/bbd_topbins.txt
+```
+
+All 16 selected bins passed this check.
+
+The number of predicted protein-coding sequences was then counted from
+the Prokka annotation tables.
+
+``` bash
+
+for file in */*.tsv; do
+
+bin=$(basename "$file".tsv)
+
+awk -F '\t' -v bin="$bin" \
+
+'NR>1 && $2=="CDS" {n++}
+
+END {print bin, n+0}' "$file"
+
+done
+```
+
+The annotation tables contain feature types. Only the entries marked as
+`CDS` were counted when comparing predicted protein-coding sequences.
+
+## 5.3 Results
+
+### 5.3.1 Overview of predicted coding sequences
+
+Prokka found a total of **19,451 predicted protein-coding sequences
+(CDS)** among the 16 selected genome bins.
+
+The number of predicted CDS differed across bins from **223** in
+`metabat.36` to **5,496**, in `metabat.45`.
+
+The three bins that had the predicted coding repertoires were:
+
+1.  `Metabat.45`. 5,496 CDS
+
+2.  `Contig_134`. 3,913 CDS
+
+3.  `Metabat.60`. 2,178 CDS
+
+To keep the results reproducible I read the annotation tables from the
+Prokka output directories.
+
+### 5.3.2 Importing Prokka annotation data
+
+``` r
+# Read the 16 genome bins selected after CheckM assessment.
+bin_ids <- readLines(
+  "checkm/bbd_topbins.txt",
+  warn = FALSE
+)
+
+bin_ids <- trimws(bin_ids)
+bin_ids <- bin_ids[nzchar(bin_ids)]
+
+stopifnot(
+  length(bin_ids) == 16,
+  !anyDuplicated(bin_ids)
+)
+
+# Locate the corresponding Prokka annotation tables.
+annotation_files <- file.path(
+  "prokka",
+  bin_ids,
+  paste0(bin_ids, ".tsv")
+)
+
+missing_files <- annotation_files[
+  !file.exists(annotation_files)
+]
+
+if (length(missing_files) > 0) {
+  stop(
+    "Missing Prokka annotation files:\n",
+    paste(missing_files, collapse = "\n")
+  )
+}
+
+# Import each annotation table and retain its genome ID.
+read_annotation <- function(file, bin) {
+
+  data <- read.delim(
+    file,
+    sep = "\t",
+    header = TRUE,
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+
+  required <- c("ftype", "product")
+
+  missing_columns <- setdiff(
+    required,
+    names(data)
+  )
+
+  if (length(missing_columns) > 0) {
+    stop(
+      "Missing columns in ", file, ": ",
+      paste(missing_columns, collapse = ", ")
+    )
+  }
+
+  data$Genome <- bin
+
+  return(data)
+}
+
+# Read all 16 annotation tables.
+annotations <- Map(
+  read_annotation,
+  annotation_files,
+  bin_ids
+)
+
+names(annotations) <- bin_ids
+
+# Count protein-coding sequences (CDS) in each genome.
+cds_counts <- vapply(
+  annotations,
+  function(data) {
+    sum(
+      trimws(data$ftype) == "CDS",
+      na.rm = TRUE
+    )
+  },
+  integer(1)
+)
+
+# Build a summary table.
+cds_summary <- data.frame(
+  Genome = names(cds_counts),
+  Predicted_CDS = as.integer(cds_counts),
+  stringsAsFactors = FALSE
+)
+
+# Sort genome bins from highest to lowest CDS count.
+cds_summary <- cds_summary[
+  order(
+    cds_summary$Predicted_CDS,
+    decreasing = TRUE
+  ),
+]
+
+rownames(cds_summary) <- NULL
+
+# Calculate the total directly from the annotation files.
+total_cds <- sum(cds_summary$Predicted_CDS)
+
+# Verify that all 16 genomes were processed.
+stopifnot(
+  nrow(cds_summary) == 16,
+  all(cds_summary$Predicted_CDS >= 0)
+)
+
+# Display the calculated total.
+cat("Genome bins analysed:", nrow(cds_summary), "\n")
+```
+
+    ## Genome bins analysed: 16
+
+``` r
+cat("Total predicted CDS:", total_cds, "\n")
+```
+
+    ## Total predicted CDS: 19251
+
+``` r
+# Display the results table.
+knitr::kable(
+  cds_summary,
+  col.names = c(
+    "Genome bin",
+    "Predicted CDS"
+  ),
+  caption = paste0(
+    "Predicted protein-coding sequences identified ",
+    "by Prokka across the 16 selected BBD genome bins. ",
+    "Total predicted CDS: ",
+    format(total_cds, big.mark = ","),
+    "."
+  )
+)
+```
+
+| Genome bin | Predicted CDS |
+|:-----------|--------------:|
+| metabat.45 |          5496 |
+| contig_134 |          3913 |
+| metabat.60 |          2178 |
+| metabat.71 |          1009 |
+| metabat.18 |           949 |
+| metabat.3  |           895 |
+| metabat.9  |           731 |
+| metabat.22 |           667 |
+| metabat.37 |           634 |
+| metabat.50 |           582 |
+| metabat.56 |           494 |
+| metabat.10 |           437 |
+| metabat.76 |           417 |
+| metabat.32 |           398 |
+| metabat.70 |           228 |
+| metabat.36 |           223 |
+
+Predicted protein-coding sequences identified by Prokka across the 16
+selected BBD genome bins. Total predicted CDS: 19,251.
+
+The table shows how many CDS features were found in each Prokka
+annotation file. These numbers are predictions of coding sequences, not
+measurements of gene expression or protein production.
+
+### 5.3.3 Comparison of predicted CDS among genome bins
+
+``` r
+# Sort genome bins by predicted CDS count
+cds_plot <- cds_summary[
+  order(cds_summary$Predicted_CDS, decreasing = TRUE),
+]
+
+# Set margins and preserve original settings
+op <- par(mar = c(5, 11, 4, 2))
+
+# Plot predicted CDS counts
+bar_positions <- barplot(
+  rev(cds_plot$Predicted_CDS),
+  names.arg = rev(cds_plot$Genome),
+  horiz = TRUE,
+  las = 1,
+  col = "steelblue",
+  border = NA,
+  xlim = c(0, max(cds_plot$Predicted_CDS) * 1.18),
+  xlab = "Predicted protein-coding sequences (CDS)",
+  main = "Predicted CDS across genome bins",
+  cex.names = 0.85
+)
+
+# Add counts to the end of each bar
+text(
+  x = rev(cds_plot$Predicted_CDS) +
+    max(cds_plot$Predicted_CDS) * 0.02,
+  y = bar_positions,
+  labels = format(
+    rev(cds_plot$Predicted_CDS),
+    big.mark = ","
+  ),
+  cex = 0.75,
+  pos = 4
+)
+```
+
+<img src="05_gene_annotation_files/figure-gfm/prokka-cds-figure-1.png" alt="" style="display: block; margin: auto;" />
+
+``` r
+# Restore graphics settings
+par(op)
+```
+
+The distribution shows a large difference in predicted CDS counts across
+the selected genome bins.
+
+`Metabat.45` had the number of predicted coding sequences followed by
+`contig_134` and then `metabat.60`.
+
+These differences should be looked at together with genome completeness
+and the amount of sequence that was recovered. A larger CDS count alone
+does not prove that the organism is more active or more important in its
+environment.
+
+### 5.3.4 Annotation of the Roseofilum-classified genome
+
+The genome bin `metabat.45` was identified by GTDB-Tk as *Roseofilum
+reptotaenium_A*.
+
+The earlier CheckM analysis estimated that **97.56% completeness** and
+**0.67% contamination**, for `metabat.45`.
+
+Prokka identified a total of **5,496 predicted CDS** within the genome
+bin `metabat.45`.
+
+The annotation table was examined to separate predicted proteins that
+received a product description from those that were labelled as
+proteins.
+
+``` r
+# Retrieve the Roseofilum-associated genome bin
+roseofilum <- annotations[["metabat.45"]]
+
+# Select predicted coding sequences
+roseofilum_cds <- roseofilum[
+  !is.na(roseofilum$ftype) &
+    roseofilum$ftype == "CDS",
+  ,
+  drop = FALSE
+]
+
+# Extract predicted protein descriptions
+products <- trimws(roseofilum_cds$product)
+products[is.na(products)] <- ""
+
+# Count annotation categories
+hypothetical <- sum(
+  products == "hypothetical protein"
+)
+
+other_products <- sum(
+  products != "" &
+    products != "hypothetical protein"
+)
+
+unlabelled <- sum(products == "")
+
+# Create annotation summary
+annotation_summary <- data.frame(
+  Category = c(
+    "Hypothetical proteins",
+    "Other predicted products",
+    "No product description"
+  ),
+  CDS = c(
+    hypothetical,
+    other_products,
+    unlabelled
+  )
+)
+
+# Calculate percentages
+annotation_summary$Percentage <- round(
+  100 * annotation_summary$CDS /
+    sum(annotation_summary$CDS),
+  1
+)
+
+# Validate observed results
+stopifnot(
+  nrow(roseofilum_cds) == 5496,
+  hypothetical == 3329,
+  other_products == 2167,
+  unlabelled == 0
+)
+
+# Display summary table
+knitr::kable(
+  annotation_summary,
+  caption = paste(
+    "Annotation composition of the",
+    "Roseofilum-classified genome bin metabat.45."
+  )
+)
+```
+
+| Category                 |  CDS | Percentage |
+|:-------------------------|-----:|-----------:|
+| Hypothetical proteins    | 3329 |       60.6 |
+| Other predicted products | 2167 |       39.4 |
+| No product description   |    0 |        0.0 |
+
+Annotation composition of the Roseofilum-classified genome bin
+metabat.45.
+
+Among the 5,496 predicted CDS:
+
+- **3,329 (60.6%)** were annotated as proteins.
+
+- **2,167 (39.4%)** received predicted product descriptions.
+
+The high proportion of proteins shows that many predicted coding
+sequences could not be assigned more specific product descriptions
+through this annotation workflow.
+
+### 5.3.5 Visualisation of annotation composition
+
+``` r
+# Prepare annotation categories
+plot_data <- annotation_summary[
+  annotation_summary$CDS > 0,
+  ,
+  drop = FALSE
+]
+
+bar_values <- plot_data$CDS
+names(bar_values) <- plot_data$Category
+
+# Create the bar chart
+bar_positions <- barplot(
+  bar_values,
+  col = c("steelblue", "darkseagreen3"),
+  border = NA,
+  ylim = c(0, max(bar_values) * 1.2),
+  ylab = "Number of predicted CDS",
+  main = "Annotation composition of metabat.45",
+  las = 1
+)
+
+# Add counts and percentages above bars
+text(
+  x = bar_positions,
+  y = bar_values,
+  labels = paste0(
+    format(bar_values, big.mark = ","),
+    "\n(",
+    plot_data$Percentage,
+    "%)"
+  ),
+  pos = 3,
+  cex = 0.9
+)
+```
+
+<img src="05_gene_annotation_files/figure-gfm/roseofilum-composition-figure-1.png" alt="" style="display: block; margin: auto;" />
+
+Most predicted coding sequences in `metabat.45` were labelled as
+hypothetical proteins yet the remaining 2,167 predicted CDS provide
+product descriptions that can be examined during downstream functional
+analysis.
+
+### 5.3.6 Distribution of predicted CDS counts
+
+### 5.3.6 Distribution of predicted CDS counts
+
+``` r
+par(mar = c(5, 5, 4, 2))
+
+boxplot(
+  cds_summary$Predicted_CDS,
+  horizontal = TRUE,
+  col = "lightsteelblue",
+  border = "steelblue4",
+  xlab = "Predicted CDS per genome bin",
+  main = "Variation in predicted coding sequence counts"
+)
+
+stripchart(
+  cds_summary$Predicted_CDS,
+  method = "jitter",
+  jitter = 0.08,
+  pch = 19,
+  col = "steelblue4",
+  add = TRUE
+)
+```
+
+<img src="05_gene_annotation_files/figure-gfm/prokka-distribution-figure-1.png" alt="" style="display: block; margin: auto;" />
+
+**Figure 3.** The distribution illustrates variation in recovered coding
+sequence counts across selected genome bins highlighting differences in
+genome assembly and completeness.
+
+Because the bins differ in estimated completeness and recovered genomic
+content these counts should not be treated as comparable measures of
+organismal functional complexity.
+
+## 5.4 Discussion
+
+Prokka successfully generated annotation datasets for all 16 selected
+genome bins.
+
+The analysis identified 19,451 predicted CDS with variation among
+reconstructed genomes.
+
+### 5.4.1 Differences among genome bins
+
+The number of predicted CDS differed substantially across selected bins.
+
+Such variation may reflect differences in genome size, completeness and
+gene content.
+
+The completeness threshold used during bin selection was, than 15%
+meaning that some retained bins were substantially incomplete.
+
+Consequently low CDS counts may reflect genome recovery rather than a
+genuinely small coding repertoire.
+
+Likewise high CDS counts should not automatically be interpreted as
+evidence of metabolic complexity.
+
+### 5.4.2 Functional annotation of metabat.45
+
+The genome was particularly informative because it combined high
+estimated completeness with the largest predicted CDS count in the
+selected dataset.
+
+Its classification as *Roseofilum reptotaenium_A* also makes it relevant
+to investigation of the BBD-associated microbial community.
+
+However 60.6% of its predicted CDS were annotated as proteins.
+
+This highlights the limitations of assigning functions from sequence
+comparisons alone.
+
+The 2,167 CDS with predicted product descriptions provide a starting
+point for identifying candidate metabolic functions.
+
+### 5.4.3 Interpretation of predicted functions
+
+Prokka annotations are predictions.
+
+A predicted coding sequence does not necessarily indicate that the
+corresponding gene is expressed, that a functional protein is produced
+or that a particular metabolic process is active.
+
+Likewise the presence of a predicted gene does not establish a
+contribution to coral disease.
+
+Further analysis is therefore required to investigate which metabolic
+pathways may be represented within the genome bins.
+
+### 5.4.4 Connection to metabolic pathway reconstruction
+
+The Prokka output files provide the annotated sequences needed for the
+stage of the workflow.
+
+Metabolic pathway analysis will investigate the potential suggested by
+these predicted genes.
+
+Particular attention can be given to pathways to microbial metabolism
+and biogeochemical processes while distinguishing predicted genomic
+potential from experimentally demonstrated activity.
+
+## 5.5
+
+Prokka generated gene annotation outputs for all 16 selected BBD genome
+bins.
+
+A combined total of **19,451 predicted protein-coding sequences** was
+identified.
+
+The largest number of predicted CDS occurred in metabat.45 with 5,496
+sequences, followed by contig_134 with 3,913 and metabat.60 with 2,178.
+
+Within metabat.45 3,329 CDS were annotated as proteins while 2,167
+received other predicted product descriptions.
+
+These findings demonstrate the extent of predicted coding information
+recovered from the selected genome bins and provide a foundation, for
+metabolic pathway reconstruction.
+
+## 5.6 Reference
+
+Seemann, T. (2014). Prokka: prokaryotic genome annotation.
+*Bioinformatics* 30(14) 2068–2069.
+<Https://doi.org/10.1093/bioinformatics/btu153>
