@@ -6,7 +6,7 @@
 
 **James Cook University, Australia**
 
-**Author:** Akshay Chaitanya
+**Author:** Akshay Chaitanya Talachintala
 
 ## Project overview
 
