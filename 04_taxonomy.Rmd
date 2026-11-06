@@ -240,7 +240,7 @@ extract_rank <- function(classification, prefix) {
   vapply(
     strsplit(classification, ";", fixed = TRUE), function(parts) {
       item <- parts[startsWith(parts, prefix)] 
-      if (length(item) ==OL){
+      if (length(item) ==0L){
         return(NA_character_)
       }
       value<- substring(item[1],
@@ -332,65 +332,55 @@ One bin did not get a classification at the phylum level.
 
 The figure brings together the two Desulfobacterota labels ** for showing purposes**; the original GTDB assignments are kept separate in the classification table.
 
-```{r taxonomy-figure, fig.width=9, fig.height=5.5 fig.align='center' fig.cap='Number of selected BBD genome bins in each GTDB phylum group. Desulfobacterota and Desulfobacterota_I are combined for visualisation. Bin counts are not abundances.'}
 
+```{r taxonomy-figure, fig.width=9, fig.height=5.5, fig.align="center"}
+
+# Use the taxonomy summary generated earlier
 plot_data <- taxonomy_summary
 
+# Combine related phylum groups for visualisation
 plot_data$Phylum_group <- plot_data$Phylum
 
 plot_data$Phylum_group[
-
-plot_data$Phylum_group %in%
-
-c("Desulfobacterota" "Desulfobacterota_I")
-
+  plot_data$Phylum_group %in%
+    c("Desulfobacterota", "Desulfobacterota_I")
 ] <- "Desulfobacterota (combined)"
 
+# Count genome bins in each phylum group
 counts <- sort(
-
-table(plot_data$Phylum_group)
-
-decreasing = TRUE
-
+  table(plot_data$Phylum_group),
+  decreasing = TRUE
 )
 
-op <- par(mar = c(5, 13 3.5 2))
+# Set margins for long phylum names
+op <- par(mar = c(5, 15, 4, 3))
 
+# Create horizontal bar chart
 positions <- barplot(
-
-rev(counts)
-
-horiz = TRUE
-
-las = 1,
-
-xlim = c(0, max(counts) + 1.2)
-
-col = "steelblue"
-
-border = NA,
-
-xlab = "Number of selected genome bins"
-
-main = " distribution of BBD genome bins"
-
+  rev(counts),
+  horiz = TRUE,
+  las = 1,
+  xlim = c(0, max(counts) + 1.2),
+  col = "steelblue",
+  border = NA,
+  xlab = "Number of selected genome bins",
+  main = "Taxonomic distribution of BBD genome bins"
 )
 
+# Display counts beside each bar
 text(
-
-x = rev(as.numeric(counts)). 0.15
-
-Y = positions,
-
-labels = rev(as.numeric(counts))
-
-cex = 0.95
-
+  x = rev(as.numeric(counts)) + 0.15,
+  y = positions,
+  labels = rev(as.numeric(counts)),
+  cex = 0.95
 )
 
+# Restore graphics settings
 par(op)
-
 ```
+
+
+
 
 #### 4.4.4 Resolution of taxonomic assignments
 
@@ -400,61 +390,47 @@ The figure below shows how many of the 16 bins had an assignment at each level.
 
 This is a **description of the GTDB-Tk output**, not a confirmation of the correctness of every assignment.
 
-```{r taxonomy-resolution, fig.width=8.5. Fig.align='center' fig.cap='Number of selected genome bins with a resolved GTDB-Tk label at each taxonomic rank. The figure is calculated directly from the GTDB-Tk summary.'}
 
+```{r taxonomy-resolution, fig.width=8.5, fig.height=5, fig.align="center"}
+
+# Define the taxonomic ranks
 rank_columns <- c(
-
-"Phylum" "Class" "Order"
-
-"Family" "Genus" "Species"
-
+  "Phylum", "Class", "Order",
+  "Family", "Genus", "Species"
 )
 
-resolved <-
-
-taxonomy_summary[rank_columns]
-
-function(x) sum(x != "Unclassified")
-
-integer(1)
-
+# Count genomes with resolved assignments at each rank
+resolved <- colSums(
+  !is.na(taxonomy_summary[rank_columns]) &
+  taxonomy_summary[rank_columns] != "Unclassified"
 )
 
-op <- par(mar = c(7, 4.5, 3 1.5))
+# Adjust margins for rank labels
+op <- par(mar = c(7, 4.5, 3, 1.5))
 
+# Create taxonomic resolution bar chart
 positions <- barplot(
-
-resolved
-
-col = "steelblue"
-
-border = NA,
-
-ylim = c(0, 17)
-
-ylab = "Number of genome bins"
-
-= "Taxonomic resolution of selected genome bins"
-
-las = 2
-
+  resolved,
+  col = "steelblue",
+  border = NA,
+  ylim = c(0, 17),
+  ylab = "Number of genome bins",
+  main = "Taxonomic resolution of selected genome bins",
+  las = 2
 )
 
+# Add counts above the bars
 text(
-
-positions
-
-resolved + 0.5
-
-labels = resolved,
-
-cex = 0.9
-
+  x = positions,
+  y = resolved + 0.5,
+  labels = resolved,
+  cex = 0.9
 )
 
+# Restore original graphics settings
 par(op)
-
 ```
+
 
 #### 4.4.5 Recovery of a *Roseofilum*-classified genome
 

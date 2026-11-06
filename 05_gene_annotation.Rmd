@@ -506,6 +506,7 @@ Within metabat.45 3,329 CDS were annotated as proteins while 2,167 received othe
 
 These findings demonstrate the extent of predicted coding information recovered from the selected genome bins and provide a foundation, for metabolic pathway reconstruction.
 
+
 ## 5.6 Reference
 
 Seemann, T. (2014). Prokka: prokaryotic genome annotation. *Bioinformatics* 30(14) 2068–2069. Https://doi.org/10.1093/bioinformatics/btu153
